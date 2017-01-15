@@ -25,7 +25,7 @@ node {
       for (int i = 0; i < xmlFiles.length; i++) {
         def file = xmlFiles[i]
         def contents = readFile file.getPath()
-        def matcher = contents =~ 'failures="(.+)"'
+        def matcher = contents =~ 'failures="([^"]+)"'
         def failures = matcher ? matcher[0][1] : null
         echo failures
         if (failures != null) {
