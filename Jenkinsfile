@@ -20,6 +20,10 @@ node {
         bat 'ant clean-jar'
       } catch (Exception e) {} 
       step([$class: 'JUnitResultArchiver', testResults: 'buildtest/results/*.xml'])
+      new File("buildtest/results").eachFile() { file ->  
+        String extension = file.getName().tokenize('.').last()
+        echo extension
+      }  
     }
     stage ('Deploy') {
       try {
