@@ -10,6 +10,7 @@ void setBuildStatus(String message, String state) {
 node {
   env.PATH = "${tool 'ant'}\\bin;${env.PATH}"
   withEnv(['JAVA_HOME=C:\\Program Files\\Java\\jdk1.8.0_111']) {
+    int failureCount = 0
     setBuildStatus("Build #${env.BUILD_NUMBER} in progress", 'PENDING')
 
     stage ('Checkout') {
@@ -24,8 +25,12 @@ node {
       for (int i = 0; i < xmlFiles.length; i++) {
         def file = xmlFiles[i]
         def contents = readFile file.getPath()
-        def xml_testsuite = new XmlSlurper().parseText(contents)
-        echo xml_testsuite.@failures
+        def matcher = contents =~ 'failures="(.+)"'
+        def failures = matcher ? matcher[0][1] : null
+        echo failures
+        if (failures != null) {
+          failureCount += failures
+        }
       }
     }
     stage ('Deploy') {
