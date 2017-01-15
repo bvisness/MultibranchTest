@@ -7,21 +7,35 @@ void setBuildStatus(String message, String state) {
 }
 
 node {
-  env.PATH = "${tool 'ant'}\\bin;${env.PATH}"
-  
-  stage ('Checkout') {
-    checkout scm
-  }
-  stage ('Build and Test') {
+  withEnv(['JAVA_HOME=C:\\Program Files\\Java\\jdk1.8.0_111']) {
+    boolean success = true
     setBuildStatus("Build #${env.BUILD_NUMBER} in progress", "PENDING")
-    withEnv(['JAVA_HOME=C:\\Program Files\\Java\\jdk1.8.0_111']) {
+
+    env.PATH = "${tool 'ant'}\\bin;${env.PATH}"
+
+    stage ('Checkout') {
+      checkout scm
+    }
+    stage ('Build and Test') {
       try {
         bat 'ant clean-jar'
-        setBuildStatus("Build #${env.BUILD_NUMBER} succeeded", "SUCCESS")
       } catch (Exception e) {
-        setBuildStatus("Build #${env.BUILD_NUMBER} failed", "FAILURE")
+        success = false
       } 
       step([$class: 'JUnitResultArchiver', testResults: 'buildtest/results/*.xml'])
+    }
+    stage ('Deploy') {
+      try {
+        bat 'ant deploy'
+      } catch (Exception e) {
+        success = false
+      }
+    }
+    
+    if (success) {
+      setBuildStatus("Build #${env.BUILD_NUMBER} succeeded", "SUCCESS")
+    } else {
+      setBuildStatus("Build #${env.BUILD_NUMBER} failed", "FAILURE")
     }
   }
 }
