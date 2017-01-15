@@ -21,7 +21,7 @@ node {
       try {
         bat 'ant clean-jar'
       } catch (Exception e) {
-        echo "Tests failed; marking commit as unsuccessful"
+        echo 'Tests failed; marking commit as unsuccessful'
         success = false
       } 
       step([$class: 'JUnitResultArchiver', testResults: 'buildtest/results/*.xml'])
@@ -30,7 +30,7 @@ node {
       try {
         bat 'ant deploy'
       } catch (Exception e) {
-        echo "Deploy failed; marking commit as unsuccessful"
+        echo 'Deploy failed; marking commit as unsuccessful'
         success = false
       }
     }
