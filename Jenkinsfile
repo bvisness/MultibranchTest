@@ -4,7 +4,7 @@ node {
     echo env.PATH
     checkout scm
     withEnv(['JAVA_HOME=C:\\Program Files\\Java\\jdk1.8.0_111']) {
-      bat 'ant -k clean-jar'
+      bat 'ant -Dant.test.failure.ignore clean-jar'
       step([$class: 'JUnitResultArchiver', testResults: 'buildtest/results/*.xml'])
     }
   }
