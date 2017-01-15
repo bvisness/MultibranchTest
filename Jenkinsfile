@@ -31,10 +31,6 @@ node {
       } catch (Exception e) {}
     }
     stage ('Update GitHub Status') {
-      echo currentBuild.result
-      waitUntil {
-        return currentBuild.result != null
-      }
       if (currentBuild.result == 'SUCCESS') {
         setBuildStatus("Build #${env.BUILD_NUMBER} succeeded", "SUCCESS")
       } else {
