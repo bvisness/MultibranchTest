@@ -28,7 +28,7 @@ node {
     }
     stage ('Update GitHub Status') {
       while (currentBuild.result == null) {
-        sleep(100) // ms
+        sleep(1) // seconds
       }
       echo currentBuild.result
       if (currentBuild.result == 'SUCCESS') {
