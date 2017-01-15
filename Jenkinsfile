@@ -19,8 +19,7 @@ node {
       try {
         bat 'ant clean-jar'
       } catch (Exception e) {} 
-      def result = step([$class: 'JUnitResultArchiver', testResults: 'buildtest/results/*.xml'])
-      echo result
+      step([$class: 'JUnitResultArchiver', testResults: 'buildtest/results/*.xml'])
     }
     stage ('Deploy') {
       try {
@@ -28,7 +27,9 @@ node {
       } catch (Exception e) {}
     }
     stage ('Update GitHub Status') {
-      echo currentBuild.result
+      while (currentBuild.result == null) {
+        sleep(100) // ms
+      }
       if (currentBuild.result == 'SUCCESS') {
         setBuildStatus("Build #${env.BUILD_NUMBER} succeeded", "SUCCESS")
       } else {
