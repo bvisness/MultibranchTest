@@ -27,7 +27,7 @@ node {
         def file = xmlFiles[i]
         def contents = readFile file.getPath()
         
-        def testsMatcher = contents =~ 'failures="([^"]+)"'
+        def testsMatcher = contents =~ 'tests="([^"]+)"'
         def tests = testsMatcher ? testsMatcher[0][1] : null
         if (tests != null) {
           testCount += tests.toInteger()
