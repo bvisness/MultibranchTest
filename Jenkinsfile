@@ -21,8 +21,9 @@ node {
       } catch (Exception e) {} 
       step([$class: 'JUnitResultArchiver', testResults: 'buildtest/results/*.xml'])
       def xmlFiles = findFiles(glob: 'buildtest/results/*.xml')
-      xmlFiles.each() { xmlFile -> 
-        echo xmlFile
+      for (int i = 0; i < xmlFiles.length; i++) {
+        def file = xmlFiles[i]
+        echo file.getName()
       }
     }
     stage ('Deploy') {
