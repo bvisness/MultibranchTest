@@ -30,6 +30,7 @@ node {
       while (currentBuild.result == null) {
         sleep(100) // ms
       }
+      echo currentBuild.result
       if (currentBuild.result == 'SUCCESS') {
         setBuildStatus("Build #${env.BUILD_NUMBER} succeeded", "SUCCESS")
       } else {
