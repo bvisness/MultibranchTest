@@ -26,13 +26,13 @@ node {
         bat 'ant deploy'
       } catch (Exception e) {}
     }
-    
-    if (currentBuild.result == 'SUCCESS') {
-      setBuildStatus("Build #${env.BUILD_NUMBER} succeeded", "SUCCESS")
-    } else {
-      setBuildStatus("Build #${env.BUILD_NUMBER} failed", "FAILURE")
+    stage ('Update GitHub Status') {
+      echo currentBuild.result
+      if (currentBuild.result == 'SUCCESS') {
+        setBuildStatus("Build #${env.BUILD_NUMBER} succeeded", "SUCCESS")
+      } else {
+        setBuildStatus("Build #${env.BUILD_NUMBER} failed", "FAILURE")
+      }
     }
   }
 }
-
-echo currentBuild.result
