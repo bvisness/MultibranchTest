@@ -19,8 +19,8 @@ node {
       try {
         bat 'ant clean-jar'
       } catch (Exception e) {} 
-      def results = junit 'buildtest/results/*.xml'
-      echo results
+      def result = step([$class: 'JUnitResultArchiver', testResults: 'buildtest/results/*.xml'])
+      echo result
     }
     stage ('Deploy') {
       try {
