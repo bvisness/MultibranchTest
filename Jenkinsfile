@@ -23,7 +23,9 @@ node {
       def xmlFiles = findFiles(glob: 'buildtest/results/*.xml')
       for (int i = 0; i < xmlFiles.length; i++) {
         def file = xmlFiles[i]
-        echo file.getName()
+        def contents = readFile file.getPath()
+        def xml_testsuite = new XmlSlurper().parseText(contents)
+        echo xml_testsuite.@failures
       }
     }
     stage ('Deploy') {
