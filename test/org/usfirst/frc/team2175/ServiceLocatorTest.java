@@ -45,6 +45,6 @@ public class ServiceLocatorTest {
 
     @Test
     public void alwaysFail() {
-        assertTrue(true);
+        assertTrue(false);
     }
 }
