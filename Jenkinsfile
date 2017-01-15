@@ -27,7 +27,7 @@ node {
       } catch (Exception e) {}
     }
     
-    echo currentBuild.rawBuild.getResult()
+    echo manager.getResult()
     if (currentBuild.result == 'SUCCESS') {
       setBuildStatus("Build #${env.BUILD_NUMBER} succeeded", "SUCCESS")
     } else {
