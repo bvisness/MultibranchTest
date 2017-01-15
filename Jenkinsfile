@@ -27,9 +27,8 @@ node {
         def contents = readFile file.getPath()
         def matcher = contents =~ 'failures="([^"]+)"'
         def failures = matcher ? matcher[0][1] : null
-        echo failures
         if (failures != null) {
-          failureCount += failures
+          failureCount += failures.toInteger()
         }
       }
     }
@@ -39,10 +38,10 @@ node {
       } catch (Exception e) {}
     }
     stage ('Update GitHub Status') {
-      if (currentBuild.result == 'SUCCESS') {
-        setBuildStatus("Build #${env.BUILD_NUMBER} succeeded", "SUCCESS")
-      } else {
+      if (failureCount > 0) {
         setBuildStatus("Build #${env.BUILD_NUMBER} failed", "FAILURE")
+      } else {
+        setBuildStatus("Build #${env.BUILD_NUMBER} succeeded", "SUCCESS")
       }
     }
   }
