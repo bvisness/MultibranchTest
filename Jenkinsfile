@@ -10,6 +10,7 @@ void setBuildStatus(String message, String state) {
 node {
   env.PATH = "${tool 'ant'}\\bin;${env.PATH}"
   withEnv(['JAVA_HOME=C:\\Program Files\\Java\\jdk1.8.0_111']) {
+    int testCount = 0
     int failureCount = 0
     setBuildStatus("Build #${env.BUILD_NUMBER} in progress", 'PENDING')
 
@@ -25,8 +26,15 @@ node {
       for (int i = 0; i < xmlFiles.length; i++) {
         def file = xmlFiles[i]
         def contents = readFile file.getPath()
-        def matcher = contents =~ 'failures="([^"]+)"'
-        def failures = matcher ? matcher[0][1] : null
+        
+        def testsMatcher = contents =~ 'failures="([^"]+)"'
+        def tests = testsMatcher ? testsMatcher[0][1] : null
+        if (tests != null) {
+          testCount += tests.toInteger()
+        }
+        
+        def failureMatcher = contents =~ 'failures="([^"]+)"'
+        def failures = failureMatcher ? failureMatcher[0][1] : null
         if (failures != null) {
           failureCount += failures.toInteger()
         }
@@ -39,9 +47,9 @@ node {
     }
     stage ('Update GitHub Status') {
       if (failureCount > 0) {
-        setBuildStatus("Build #${env.BUILD_NUMBER} failed", "FAILURE")
+        setBuildStatus("Build #${env.BUILD_NUMBER} failed. ${testCount - failureCount}/${testCount} tests passed.", "FAILURE")
       } else {
-        setBuildStatus("Build #${env.BUILD_NUMBER} succeeded", "SUCCESS")
+        setBuildStatus("Build #${env.BUILD_NUMBER} succeeded. ${testCount - failureCount}/${testCount} tests passed.", "SUCCESS")
       }
     }
   }
