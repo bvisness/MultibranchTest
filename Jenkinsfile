@@ -1,5 +1,6 @@
-def repoURL = 'https://github.com/bvisness/MultibranchTest'
-def jdk = 'jdk1.8.0_111'
+repoURL = 'https://github.com/bvisness/MultibranchTest'
+jdk = 'jdk1.8.0_111'
+slackChannel = '#jenkins'
 
 void setBuildStatus(String message, String state) {
   step([
@@ -73,7 +74,7 @@ node {
         slackMessage += "\nTest Status:\n    Passed: ${testCount - failureCount}, Failed: ${failureCount}, Skipped: ${skippedCount}"
         slackMessage += "\nDeploy Result:\n    ${deploySuccess ? 'Success' : 'Failure'}"
         
-        slackSend channel: '#jenkins', color: (overallSuccess ? 'good' : 'danger'), message: slackMessage
+        slackSend channel: slackChannel, color: (overallSuccess ? 'good' : 'danger'), message: slackMessage
       }
     }
   }
