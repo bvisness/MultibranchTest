@@ -53,6 +53,7 @@ node {
       try {
         bat 'ant deploy'
       } catch (Exception e) {
+        currentBuild.result = 'ERROR'
         deploySuccess = false
       }
     }
