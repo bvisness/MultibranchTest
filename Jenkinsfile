@@ -1,15 +1,18 @@
+def repoURL = 'https://github.com/bvisness/MultibranchTest'
+def jdk = 'jdk1.8.0_111'
+
 void setBuildStatus(String message, String state) {
   step([
-      $class: "GitHubCommitStatusSetter",
-      reposSource: [$class: "ManuallyEnteredRepositorySource", url: "https://github.com/bvisness/MultibranchTest"],
-      errorHandlers: [[$class: "ChangingBuildStatusErrorHandler", result: "UNSTABLE"]],
-      statusResultSource: [ $class: "ConditionalStatusResultSource", results: [[$class: "AnyBuildResult", message: message, state: state]] ]
+      $class: 'GitHubCommitStatusSetter',
+      reposSource: [$class: 'ManuallyEnteredRepositorySource', url: repoURL],
+      errorHandlers: [[$class: 'ChangingBuildStatusErrorHandler', result: 'UNSTABLE']],
+      statusResultSource: [ $class: 'ConditionalStatusResultSource', results: [[$class: 'AnyBuildResult', message: message, state: state]] ]
   ]);
 }
 
 node {
   env.PATH = "${tool 'ant'}\\bin;${env.PATH}"
-  withEnv(['JAVA_HOME=C:\\Program Files\\Java\\jdk1.8.0_111']) {
+  withEnv(["JAVA_HOME=C:\\Program Files\\Java\\${jdk}"]) {
     int testCount = 0
     int failureCount = 0
     int skippedCount = 0
@@ -58,17 +61,19 @@ node {
       }
     }
     stage ('Update GitHub Status & Notify') {
-      def githubStatusMessage = "${testCount - failureCount}/${testCount} tests passed, deploy ${deploySuccess ? 'succeeded' : 'failed'}."
+      boolean overallSuccess = (failureCount == 0 && deploySuccess)
       
-      def slackResultMessage = "Test Status:\n    Passed: ${testCount - failureCount}, Failed: ${failureCount}, Skipped: ${skippedCount}"
-      slackResultMessage += "\nDeploy Result:\n    ${deploySuccess ? 'Success' : 'Failure'}"
-  
-      if (failureCount > 0 || !deploySuccess) {
-        setBuildStatus("Build #${env.BUILD_NUMBER} failed. ${githubStatusMessage}", "FAILURE")
-        slackSend channel: '#jenkins', color: 'danger', message: "Build #${env.BUILD_NUMBER} Failure\n${slackResultMessage}"
-      } else {
-        setBuildStatus("Build #${env.BUILD_NUMBER} succeeded. ${githubStatusMessage}", "SUCCESS")
-        slackSend channel: '#jenkins', color: 'good', message: "Build #${env.BUILD_NUMBER} Success\n${slackResultMessage}"
+      def githubStatusMessage = "Build #${env.BUILD_NUMBER} ${overallSuccess ? 'succeeded' : 'failed'}."
+      githubStatusMessage = " ${testCount - failureCount}/${testCount} tests passed, deploy ${deploySuccess ? 'succeeded' : 'failed'}."
+      
+      setBuildStatus(githubStatusMessage, overallSuccess ? 'SUCCESS' : 'FAILURE')
+      
+      if (env.BRANCH_NAME == 'master') {
+        def slackMessage = "Build #${env.BUILD_NUMBER} ${overallSuccess ? 'Success' : 'Failure'}"
+        slackMessage += "\nTest Status:\n    Passed: ${testCount - failureCount}, Failed: ${failureCount}, Skipped: ${skippedCount}"
+        slackMessage += "\nDeploy Result:\n    ${deploySuccess ? 'Success' : 'Failure'}"
+        
+        slackSend channel: '#jenkins', color: (overallSuccess ? 'good' : 'danger'), message: slackMessage
       }
     }
   }
