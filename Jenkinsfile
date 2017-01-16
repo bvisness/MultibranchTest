@@ -12,6 +12,7 @@ node {
   withEnv(['JAVA_HOME=C:\\Program Files\\Java\\jdk1.8.0_111']) {
     int testCount = 0
     int failureCount = 0
+    int skippedCount = 0
     setBuildStatus("Build #${env.BUILD_NUMBER} in progress", 'PENDING')
 
     stage ('Checkout') {
@@ -38,6 +39,12 @@ node {
         if (failures != null) {
           failureCount += failures.toInteger()
         }
+        
+        def skippedMatcher = contents =~ 'skipped="([^"]+)"'
+        def skipped = skippedMatcher ? skippedMatcher[0][1] : null
+        if (skipped != null) {
+          skippedCount += skipped.toInteger()
+        }
       }
     }
     stage ('Deploy') {
@@ -45,11 +52,13 @@ node {
         bat 'ant deploy'
       } catch (Exception e) {}
     }
-    stage ('Update GitHub Status') {
+    stage ('Update GitHub Status & Notify') {
       if (failureCount > 0) {
         setBuildStatus("Build #${env.BUILD_NUMBER} failed. ${testCount - failureCount}/${testCount} tests passed.", "FAILURE")
+        slackSend channel: '#jenkins', color: 'danger', message: "Build #${env.BUILD_NUMBER} failed!\nPassed: ${testCount - failureCount}, Failed: ${failureCount}, Skipped: ${skippedCount}"
       } else {
         setBuildStatus("Build #${env.BUILD_NUMBER} succeeded. ${testCount - failureCount}/${testCount} tests passed.", "SUCCESS")
+        slackSend channel: '#jenkins', color: 'good', message: "Build #${env.BUILD_NUMBER} passed.\nPassed: ${testCount - failureCount}, Failed: ${failureCount}, Skipped: ${skippedCount}"
       }
     }
   }
