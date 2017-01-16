@@ -13,6 +13,8 @@ node {
     int testCount = 0
     int failureCount = 0
     int skippedCount = 0
+    boolean deploySuccess = true
+
     setBuildStatus("Build #${env.BUILD_NUMBER} in progress", 'PENDING')
 
     stage ('Checkout') {
@@ -50,11 +52,15 @@ node {
     stage ('Deploy') {
       try {
         bat 'ant deploy'
-      } catch (Exception e) {}
+      } catch (Exception e) {
+        deploySuccess = false
+      }
     }
     stage ('Update GitHub Status & Notify') {
       def slackResultMessage = "Test Status:\n    Passed: ${testCount - failureCount}, Failed: ${failureCount}, Skipped: ${skippedCount}"
-      if (failureCount > 0) {
+      slackResultMessage += "\nDeploy Result:\n    ${deploySuccess ? 'Success' : 'Failure'}"
+  
+      if (failureCount > 0 || !deploySuccess) {
         setBuildStatus("Build #${env.BUILD_NUMBER} failed. ${testCount - failureCount}/${testCount} tests passed.", "FAILURE")
         slackSend channel: '#jenkins', color: 'danger', message: "Build #${env.BUILD_NUMBER} Failure\n${slackResultMessage}"
       } else {
