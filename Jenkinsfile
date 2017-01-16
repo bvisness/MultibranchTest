@@ -58,14 +58,16 @@ node {
       }
     }
     stage ('Update GitHub Status & Notify') {
+      def githubStatusMessage = "${testCount - failureCount}/${testCount} tests passed, deploy ${deploySuccess ? 'succeeded' : 'failed'}."
+      
       def slackResultMessage = "Test Status:\n    Passed: ${testCount - failureCount}, Failed: ${failureCount}, Skipped: ${skippedCount}"
       slackResultMessage += "\nDeploy Result:\n    ${deploySuccess ? 'Success' : 'Failure'}"
   
       if (failureCount > 0 || !deploySuccess) {
-        setBuildStatus("Build #${env.BUILD_NUMBER} failed. ${testCount - failureCount}/${testCount} tests passed.", "FAILURE")
+        setBuildStatus("Build #${env.BUILD_NUMBER} failed. ${githubStatusMessage}", "FAILURE")
         slackSend channel: '#jenkins', color: 'danger', message: "Build #${env.BUILD_NUMBER} Failure\n${slackResultMessage}"
       } else {
-        setBuildStatus("Build #${env.BUILD_NUMBER} succeeded. ${testCount - failureCount}/${testCount} tests passed.", "SUCCESS")
+        setBuildStatus("Build #${env.BUILD_NUMBER} succeeded. ${githubStatusMessage}", "SUCCESS")
         slackSend channel: '#jenkins', color: 'good', message: "Build #${env.BUILD_NUMBER} Success\n${slackResultMessage}"
       }
     }
